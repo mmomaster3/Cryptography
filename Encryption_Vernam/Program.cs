@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace Encryption_Vernam
@@ -11,13 +7,42 @@ namespace Encryption_Vernam
     {
         static void Main(string[] args)
         {
-            //Console.WriteLine("Введите сообщение: ");
-            //string msg = Console.ReadLine();
+            byte[] image = File.ReadAllBytes("Image.jpg");
 
-            byte[] image = File.ReadAllBytes("sakuya-izayoi-snow.jpg");
-            Console.WriteLine(Cipher(RandKey(image), image));
-           
-            Console.ReadLine();
+            int choose = 0;
+
+            Console.WriteLine("1-Шифровка\n2-Дешифровка");
+            int.TryParse(Console.ReadLine(), out choose);
+            Console.WriteLine();
+
+            using (FileStream sb = new FileStream("Pass.txt", FileMode.OpenOrCreate))
+            {
+                switch (choose)
+                {
+                    case 1:
+                        {
+                            StreamWriter sw = new StreamWriter(sb);
+                            char[] pass = RandKey(image);
+                            sw.Write(pass);
+                            sw.Close();
+                            File.WriteAllBytes("Image.jpg", (Cipher(pass, image)));
+                            break;
+                        }
+                    case 2:
+                        {
+                            StreamReader sr = new StreamReader(sb);
+                            string TextFile = sr.ReadToEnd();
+                            sr.Close();
+                            File.WriteAllBytes("Image.jpg", (Cipher(TextFile.ToCharArray(), image)));
+                            break;
+                        }
+                    default:
+                        {
+                            //сделать исключение для другой переменной
+                            break;
+                        }
+                }
+            }
         }
 
         public static char[] RandKey(byte[] image)
@@ -32,14 +57,13 @@ namespace Encryption_Vernam
             return key;
         }
 
-        public static string Cipher(char[] key, byte[] image)
+        public static byte[] Cipher(char[] key, byte[] image)
         {
-            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < image.Length; i++)
             {
-                sb.Append((char)(image[i] ^ key[i]));
+                image[i] = (byte)(image[i] ^ key[i]);
             }
-            return sb.ToString();
+            return image;
         }
     }
 }
